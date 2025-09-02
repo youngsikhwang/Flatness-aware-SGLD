@@ -19,7 +19,10 @@ Set a common root, e.g., `--data_root ./data`. The expected directory layout is:
 └── WebVision
 ```
 ### CIFAR-N
-For CIFAR-10N/CIFAR-100N, we follow the official repository: https://github.com/UCSC-REAL/cifar-10-100n/tree/main
+For CIFAR-10N/CIFAR-100N, we follow the official repository of [1]: https://github.com/UCSC-REAL/cifar-10-100n/tree/main
+
+
+[1] Jiaheng Wei, Zhaowei Zhu, Hao Cheng, Tongliang Liu, Gang Niu, and Yang Liu. Learning with noisy labels revisited: A study using real-world human annotations. In International Conference on Learning Representations, 2022
 
 ### WebVision
 For WebVision, we replicate the repository: https://github.com/sangamesh-kodge/Mini-WebVision
