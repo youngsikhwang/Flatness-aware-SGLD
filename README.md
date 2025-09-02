@@ -70,7 +70,7 @@ Results will be saved in `results/cifar10N_resnet34_cifar_fgld_sigma0.001_lr0.1/
 ```bash
 python main_optuna.py \
   --dataset webvision --backbone resnet50 --optimizer fgld \
-  --n_trials 20 --epochs 150 \
+  --n_trials 20 \
   --save_dir ./optuna_results/webvision_resnet50_fgld 
 ```
 
@@ -80,6 +80,6 @@ Results will be saved in `optuna_results/webvision_resnet50_fgld/webvision_resne
 ```bash
 python main_optuna.py \
   --dataset cifar10N --backbone vit-b-16 --optimizer fgld \
-  --n_trials 20 --epochs 75 \
+  --n_trials 20 \
   --save_dir ./optuna_results/cifar10N_vit_b_16_fgld 
 ```
