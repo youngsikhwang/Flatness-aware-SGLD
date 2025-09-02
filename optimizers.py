@@ -188,19 +188,13 @@ class SAM(Optimizer):
 
     def step(self, closure):
         assert closure is not None, "SAM requires closure for gradient computation"
-        
-        # First forward/backward to get initial gradients
+
         with torch.enable_grad():
             loss = closure()
-        
-        # Calculate perturbation based on current gradients
         grad_norm = self._grad_norm()
         if grad_norm == 0:
-            # If no gradient, just do regular step
             self.base_optimizer.step()
             return loss
-            
-        # Apply perturbation (first_step equivalent)
         with torch.no_grad():
             for group in self.param_groups:
                 scale = self.rho / grad_norm
@@ -211,22 +205,17 @@ class SAM(Optimizer):
                     p.add_(e_w)
                     self.state[p]["e_w"] = e_w
         
-        # Zero gradients before second forward/backward
         self.zero_grad()
         
-        # Second forward/backward at perturbed position
         with torch.enable_grad():
             loss = closure()
-        
-        # Restore original weights and apply base optimizer step (second_step equivalent)
+
         with torch.no_grad():
             for group in self.param_groups:
                 for p in group["params"]:
                     if p.grad is None: 
                         continue
-                    p.sub_(self.state[p]["e_w"])  # Restore to original position
-        
-        # Apply base optimizer step with gradients computed at perturbed position
+                    p.sub_(self.state[p]["e_w"]) 
         self.base_optimizer.step()
         self.zero_grad()
         
