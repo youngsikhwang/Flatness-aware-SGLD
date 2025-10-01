@@ -108,7 +108,8 @@ def get_optimizer(model, optimizer_name: str, lr: float, **kwargs):
             weight_decay=kwargs.get('weight_decay', 5e-4),
             beta_inv=1e-14,
             pert_type=kwargs.get('pert_type', 'normal'),
-            antithetic=kwargs.get('antithetic', False)
+            antithetic=kwargs.get('antithetic', False),
+            beta_coupling=kwargs.get('beta_coupling', False)
         )
         scheduler = optim.lr_scheduler.MultiStepLR(
             optimizer, 
@@ -257,6 +258,7 @@ def objective(trial: optuna.Trial, args):
         optimizer_kwargs['beta_inv'] = 1e-14  # Fixed
         optimizer_kwargs['pert_type'] = 'normal'  # Fixed
         optimizer_kwargs['momentum'] = 0.0
+        optimizer_kwargs['beta_coupling'] = args.beta_coupling
 
     elif args.optimizer == 'sgld':
         lr = trial.suggest_float('lr', 0.01, 1.0, log=True)
@@ -450,6 +452,7 @@ def train_with_params(args, best_params, seed):
         optimizer_kwargs['pert_type'] = args.pert_type if hasattr(args, 'pert_type') else 'normal'
         optimizer_kwargs['antithetic'] = args.antithetic if hasattr(args, 'antithetic') else False
         optimizer_kwargs['momentum'] = best_params.get('fsgld_momentum', 0.0)
+        optimizer_kwargs['beta_coupling'] = args.beta_coupling if hasattr(args, 'beta_coupling') else False
     
     elif args.optimizer == 'sgld':
         optimizer_kwargs['momentum'] = best_params.get('momentum', 0.0)
@@ -666,6 +669,7 @@ def train_with_best_params(args, best_params):
         optimizer_kwargs['beta_inv'] = best_params.get('beta_inv', 1e-14)
         optimizer_kwargs['pert_type'] = 'normal'  # Fixed
         optimizer_kwargs['momentum'] = best_params.get('fsgld_momentum', 0.0)
+        optimizer_kwargs['beta_coupling'] = args.beta_coupling
     
     elif args.optimizer == 'sgld':
         optimizer_kwargs['momentum'] = 0.0
@@ -792,6 +796,7 @@ def main():
     parser.add_argument('--optimizer', type=str, default='sgd',
                        choices=['sgd', 'fsgld', 'sam','sgld', 'adamw'], 
                        help='Optimizer to tune')
+    parser.add_argument('--beta_coupling', action='store_true', help='Use coupled beta')
     
     # Optuna settings
     parser.add_argument('--n_trials', type=int, default=20, 

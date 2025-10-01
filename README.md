@@ -1,6 +1,6 @@
 # Flatness-Aware Stochastic Gradient Langevin Dynamics
 
-This is the code implementation for the "Flatness-Aware Stochastic Gradient Langevin Dynamics". 
+This is the code implementation for the 2026 ICLR submission "Flatness-Aware Stochastic Gradient Langevin Dynamics". 
 
 ## Setup
 First, install the required dependencies:
@@ -19,10 +19,7 @@ Set a common root, e.g., `--data_root ./data`. The expected directory layout is:
 └── WebVision
 ```
 ### CIFAR-N
-For CIFAR-10N/CIFAR-100N, we follow the official repository of [1]: https://github.com/UCSC-REAL/cifar-10-100n/tree/main
-
-
-[1] Jiaheng Wei, Zhaowei Zhu, Hao Cheng, Tongliang Liu, Gang Niu, and Yang Liu. Learning with noisy labels revisited: A study using real-world human annotations. In International Conference on Learning Representations, 2022
+For CIFAR-10N/CIFAR-100N, we follow the official repository: https://github.com/UCSC-REAL/cifar-10-100n/tree/main
 
 ### WebVision
 For WebVision, we replicate the repository: https://github.com/sangamesh-kodge/Mini-WebVision
@@ -58,28 +55,28 @@ python main_auto.py \
 
 ### Examples
 
-**(1) Single run: CIFAR-10N, ResNet-34, fGLD**
+**(1) Single run: CIFAR-10N, ResNet-34, fSGLD**
 
 ```bash
-python main.py --dataset cifar10N --optimizer fgld --backbone resnet34_cifar --lr 0.1 --sigma 0.001
+python main.py --dataset cifar10N --optimizer fsgld --backbone resnet34_cifar --lr 0.1 --sigma 0.001 --beta_coupling
 ```
-Results will be saved in `results/cifar10N_resnet34_cifar_fgld_sigma0.001_lr0.1/results.json`.
+Results will be saved in `results/cifar10N_resnet34_cifar_fsgld_sigma0.001_lr0.1/results.json`.
 
-**(2) Hyperparameter tuning: WebVision, ResNet-50, fGLD**
+**(2) Hyperparameter tuning: WebVision, ResNet-50, fSGLD**
 
+```bash
+python main_auto.py \
+  --dataset webvision --backbone resnet50 --optimizer fsgld \
+  --n_trials 20 --epochs 150 --beta_coupling \
+  --save_dir ./optuna_results/webvision_resnet50_fsgld 
+```
+
+Results will be saved in `optuna_results/webvision_resnet50_fsgld/webvision_resnet50_fsgld_optuna_study_results.json`.
+
+**(3) Hyperparameter tuning: CIFAR-10N, ViT-B-16, fSGLD**
 ```bash
 python main_optuna.py \
-  --dataset webvision --backbone resnet50 --optimizer fgld \
-  --n_trials 20 \
-  --save_dir ./optuna_results/webvision_resnet50_fgld 
-```
-
-Results will be saved in `optuna_results/webvision_resnet50_fgld/webvision_resnet50_fgld_optuna_study_results.json`.
-
-**(3) Hyperparameter tuning: CIFAR-10N, ViT-B-16, fGLD**
-```bash
-python main_optuna.py \
-  --dataset cifar10N --backbone vit-b-16 --optimizer fgld \
-  --n_trials 20 \
-  --save_dir ./optuna_results/cifar10N_vit_b_16_fgld 
+  --dataset cifar10N --backbone vit_b_16 --optimizer fsgld \
+  --n_trials 20 --epochs 75 \
+  --save_dir ./optuna_results/cifar10N_vit_b_16_fsgld 
 ```

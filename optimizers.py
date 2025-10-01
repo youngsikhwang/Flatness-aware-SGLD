@@ -6,10 +6,10 @@ from torch.optim import Optimizer
 class fSGLD(Optimizer):
     def __init__(self, params, lr, sigma, n_pert=1,
                  momentum=0.9, weight_decay=5e-4, beta_inv=1e-14, 
-                 pert_type='normal', antithetic=False):
+                 pert_type='normal', antithetic=False, beta_coupling=False):
         defaults = dict(lr=lr, sigma=sigma, n_pert=n_pert,
                         momentum=momentum, weight_decay=weight_decay,
-                        beta_inv=beta_inv, pert_type=pert_type, antithetic=antithetic)
+                        beta_inv=beta_inv, pert_type=pert_type, antithetic=antithetic, beta_coupling=beta_coupling)
         super().__init__(params, defaults)
         self.base_opt = torch.optim.SGD(self.param_groups, lr=lr,
                                         momentum=momentum,
@@ -32,7 +32,12 @@ class fSGLD(Optimizer):
         momentum = group['momentum']
         pert_type = group['pert_type']
         antithetic = group['antithetic']
+        beta_coupling = group['beta_coupling']
         params = group['params']
+
+        if beta_coupling:
+            # eta = 0.01 assumed, ignores beta input while beta_coupling is on going.
+            betainv = sigma**(4/1.01)
 
         for p in params:
             if p.grad is not None:
@@ -188,13 +193,19 @@ class SAM(Optimizer):
 
     def step(self, closure):
         assert closure is not None, "SAM requires closure for gradient computation"
-
+        
+        # First forward/backward to get initial gradients
         with torch.enable_grad():
             loss = closure()
+        
+        # Calculate perturbation based on current gradients
         grad_norm = self._grad_norm()
         if grad_norm == 0:
+            # If no gradient, just do regular step
             self.base_optimizer.step()
             return loss
+            
+        # Apply perturbation (first_step equivalent)
         with torch.no_grad():
             for group in self.param_groups:
                 scale = self.rho / grad_norm
@@ -205,17 +216,22 @@ class SAM(Optimizer):
                     p.add_(e_w)
                     self.state[p]["e_w"] = e_w
         
+        # Zero gradients before second forward/backward
         self.zero_grad()
         
+        # Second forward/backward at perturbed position
         with torch.enable_grad():
             loss = closure()
-
+        
+        # Restore original weights and apply base optimizer step (second_step equivalent)
         with torch.no_grad():
             for group in self.param_groups:
                 for p in group["params"]:
                     if p.grad is None: 
                         continue
-                    p.sub_(self.state[p]["e_w"]) 
+                    p.sub_(self.state[p]["e_w"])  # Restore to original position
+        
+        # Apply base optimizer step with gradients computed at perturbed position
         self.base_optimizer.step()
         self.zero_grad()
         

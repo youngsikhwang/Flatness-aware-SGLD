@@ -72,11 +72,12 @@ def get_optimizer(model, optimizer_name: str, lr: float, **kwargs):
         )
         scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=kwargs.get('milestones',[50,100]), gamma=0.1)
     
-    elif optimizer_name == 'adam':
-        optimizer = optim.Adam(
+    elif optimizer_name == 'adamw':
+        optimizer = optim.AdamW(
             model.parameters(),
             lr=lr,
-            weight_decay=kwargs.get('weight_decay', 5e-4)
+            betas=kwargs.get('betas', (0.9, 0.999)),  # (beta1, beta2)
+            weight_decay=kwargs.get('weight_decay', 1e-2)
         )
         scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=kwargs.get('milestones',[50, 100]), gamma=0.1)
 
@@ -92,16 +93,17 @@ def get_optimizer(model, optimizer_name: str, lr: float, **kwargs):
         scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=kwargs.get('milestones',[50, 100]), gamma=0.1)
 
 
-    elif optimizer_name == 'fSGLD':
+    elif optimizer_name == 'fsgld':
         optimizer = fSGLD(
             model.parameters(),
             lr=lr,
             sigma=kwargs.get('sigma', 0.001),
             n_pert=kwargs.get('n_pert', 1),
-            momentum=kwargs.get('momentum', 0.0),
+            momentum=0.0,
             weight_decay=kwargs.get('weight_decay', 5e-4),
             beta_inv=kwargs.get('beta_inv', 1e-14),
-            pert_type=kwargs.get('pert_type', 'normal')
+            pert_type=kwargs.get('pert_type', 'normal'),
+            beta_coupling=kwargs.get('beta_coupling', False)
         )
         scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=kwargs.get('milestones',[50, 100]), gamma=0.1)
 
@@ -205,7 +207,7 @@ def main():
     
     # Model settings
     parser.add_argument('--backbone', type=str, default='resnet34', 
-                       choices=['resnet34', 'resnet50','resnet34_cifar', 'resnet50_cifar', 'vit'], help='Backbone architecture')
+                       choices=['resnet34', 'resnet50','resnet34_cifar', 'resnet50_cifar', 'vit_b_16'], help='Backbone architecture')
 
     parser.add_argument('--dataset', type=str, default='cifar10N',
                        choices=['cifar10N', 'cifar100N', 'webvision'], 
@@ -214,7 +216,7 @@ def main():
 
     # Training settings
     parser.add_argument('--optimizer', type=str, default='sgd',
-                       choices=['sgd', 'adam', 'fsgld', 'sam'], help='Optimizer')
+                       choices=['sgd', 'adamw', 'fsgld', 'sam', 'sgld'], help='Optimizer')
     parser.add_argument('--epochs', type=int, default=150, help='Number of epochs')
     parser.add_argument('--batch_size', type=int, default=128, help='Batch size')
     parser.add_argument('--lr', type=float, default=0.1, help='Learning rate')
@@ -230,6 +232,7 @@ def main():
     parser.add_argument('--beta_inv', type=float, default=1e-14, help='fSGLD Langevin noise scale')
     parser.add_argument('--pert_type', type=str, default='normal',
                        choices=['normal', 'antithetic'], help='fSGLD perturbation type')
+    parser.add_argument('--beta_coupling', action='store_true', help='Use coupled beta')
     
     # SAM specific
     parser.add_argument('--rho', type=float, default=0.05, help='SAM perturbation radius')
@@ -237,7 +240,7 @@ def main():
     
     # System settings
     parser.add_argument('--device', type=str, default='cuda', help='Device to use')
-    parser.add_argument('--num_workers', type=int, default=16, help='Number of data loading workers')
+    parser.add_argument('--num_workers', type=int, default=8, help='Number of data loading workers')
     parser.add_argument('--seed', type=int, default=42, help='Random seed')
     parser.add_argument('--save_dir', type=str, default='./results', help='Directory to save results')
     
@@ -295,7 +298,8 @@ def main():
         'beta_inv': args.beta_inv,
         'pert_type': args.pert_type,
         'rho': args.rho,
-        'adaptive': args.adaptive
+        'adaptive': args.adaptive,
+        'beta_coupling': args.beta_coupling
     }
     
     optimizer, scheduler = get_optimizer(model, args.optimizer, args.lr, **optimizer_kwargs)
@@ -334,7 +338,10 @@ def main():
         if test_acc > best_test_acc:
             best_test_acc = test_acc
             best_acc_epoch = epoch
-            torch.save(model.state_dict(), os.path.join(save_dir, 'best_acc_model.pth'))
+            torch.save(model.state_dict(), os.path.join(save_dir, f'best_model_{args.optimizer}.pth'))
+
+        if test_loss < best_test_loss:
+            best_test_loss = test_loss
 
         # Record results
         results.append({
