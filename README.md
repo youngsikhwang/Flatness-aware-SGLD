@@ -2,14 +2,21 @@
 
 This is the code implementation for "Flatness-Aware Stochastic Gradient Langevin Dynamics". 
 
-## Setup
+
+## Table 1,2
+Please refer `code/EMCMC/READEME.md`.
+
+## Table 3,4
+Please ensure 
+
+### Setup
 First, install the required dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-## Data Preparation
+### Data Preparation
 
 Set a common root, e.g., `--data_root ./data`. The expected directory layout is:
 
@@ -30,7 +37,7 @@ Run the following command in `data/WebVision`:
 sh create_MiniWebVision_as_ImageNet.sh
 ```
 
-## Usage
+### Usage
 
 To train the model for one configuration, run:
 
@@ -53,12 +60,25 @@ python main_auto.py \
     --save_dir $SAVE_DIR
 ```
 
+You may further control the learning strategy using the following options:
+
+- `--beta_coupling`  
+  Use together with `--optimizer fsgld` to enable a deterministic perturbation scale (σ).
+
+- `--fixedbeta`  
+  Fix the inverse temperature β⁻¹ during Optuna hyperparameter search.
+
+- `--betavalue`  
+  Specify the value of β⁻¹ when `--fixedbeta` is enabled.
+
+
+
 ### Examples
 
 **(1) Single run: CIFAR-10N, ResNet-34, fSGLD**
 
 ```bash
-python main.py --dataset cifar10N --optimizer fsgld --backbone resnet34_cifar --lr 0.1 --sigma 0.001 --beta_coupling
+python main.py --dataset cifar10N --optimizer fsgld --backbone resnet34_cifar --lr 0.1 --beta_inv 1e-8 --beta_coupling
 ```
 Results will be saved in `results/cifar10N_resnet34_cifar_fsgld_sigma0.001_lr0.1/results.json`.
 
@@ -75,7 +95,7 @@ Results will be saved in `optuna_results/webvision_resnet50_fsgld/webvision_resn
 
 **(3) Hyperparameter tuning: CIFAR-10N, ViT-B-16, fSGLD**
 ```bash
-python main_optuna.py \
+python main_auto.py \
   --dataset cifar10N --backbone vit_b_16 --optimizer fsgld \
   --n_trials 20 --epochs 75 \
   --save_dir ./optuna_results/cifar10N_vit_b_16_fsgld 

@@ -103,7 +103,8 @@ def get_optimizer(model, optimizer_name: str, lr: float, **kwargs):
             weight_decay=kwargs.get('weight_decay', 5e-4),
             beta_inv=kwargs.get('beta_inv', 1e-14),
             pert_type=kwargs.get('pert_type', 'normal'),
-            beta_coupling=kwargs.get('beta_coupling', False)
+            beta_coupling=kwargs.get('beta_coupling', False),
+            eta=kwargs.get('eta', 0.01)
         )
         scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=kwargs.get('milestones',[50, 100]), gamma=0.1)
 
@@ -227,12 +228,13 @@ def main():
     parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight decay')
     
     # fSGLD specific
-    parser.add_argument('--sigma', type=float, default=0.1, help='fSGLD perturbation scale')
+    parser.add_argument('--sigma', type=float, default=0.001, help='fSGLD perturbation scale')
     parser.add_argument('--n_pert', type=int, default=1, help='fSGLD number of perturbations')
     parser.add_argument('--beta_inv', type=float, default=1e-14, help='fSGLD Langevin noise scale')
     parser.add_argument('--pert_type', type=str, default='normal',
                        choices=['normal', 'antithetic'], help='fSGLD perturbation type')
-    parser.add_argument('--beta_coupling', action='store_true', help='Use coupled beta')
+    parser.add_argument('--beta_coupling', action='store_true', help='Use coupled sigma, ignore sigma input.')
+    parser.add_argument('--eta', type=float, default=0.01, help='for beta-sigma coupling, should use with beta_coupling on.')
     
     # SAM specific
     parser.add_argument('--rho', type=float, default=0.05, help='SAM perturbation radius')
@@ -245,6 +247,10 @@ def main():
     parser.add_argument('--save_dir', type=str, default='./results', help='Directory to save results')
     
     args = parser.parse_args()
+
+    # Ignore user-provided --sigma if beta_coupling option is True
+    if args.beta_coupling:
+        args.sigma = args.beta_inv ** ((1.0 + args.eta) / 4.0)
     
     # Set seed
     set_seed(args.seed)
@@ -299,7 +305,8 @@ def main():
         'pert_type': args.pert_type,
         'rho': args.rho,
         'adaptive': args.adaptive,
-        'beta_coupling': args.beta_coupling
+        'beta_coupling': args.beta_coupling,
+        'eta' : args.eta
     }
     
     optimizer, scheduler = get_optimizer(model, args.optimizer, args.lr, **optimizer_kwargs)
@@ -369,6 +376,9 @@ def main():
     logger.info(f'Final test loss: {final_test_loss:.4f}')
     logger.info(f'Average last {last_n} epochs - Acc: {avg_last_test_acc:.2f}%, Loss: {avg_last_test_loss:.4f}')
     
+    final_model_path = os.path.join(args.save_dir, f'final_model_{args.optimizer}.pth')
+    torch.save(model.state_dict(), final_model_path)
+        
     # Save results
     results_file = os.path.join(save_dir, 'results.json')
     with open(results_file, 'w') as f:

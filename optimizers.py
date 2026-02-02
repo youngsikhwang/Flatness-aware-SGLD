@@ -6,10 +6,10 @@ from torch.optim import Optimizer
 class fSGLD(Optimizer):
     def __init__(self, params, lr, sigma, n_pert=1,
                  momentum=0.9, weight_decay=5e-4, beta_inv=1e-14, 
-                 pert_type='normal', antithetic=False, beta_coupling=False):
+                 pert_type='normal', antithetic=False, beta_coupling=False, eta=0.01):
         defaults = dict(lr=lr, sigma=sigma, n_pert=n_pert,
                         momentum=momentum, weight_decay=weight_decay,
-                        beta_inv=beta_inv, pert_type=pert_type, antithetic=antithetic, beta_coupling=beta_coupling)
+                        beta_inv=beta_inv, pert_type=pert_type, antithetic=antithetic, beta_coupling=beta_coupling, eta=eta)
         super().__init__(params, defaults)
         self.base_opt = torch.optim.SGD(self.param_groups, lr=lr,
                                         momentum=momentum,
@@ -33,11 +33,8 @@ class fSGLD(Optimizer):
         pert_type = group['pert_type']
         antithetic = group['antithetic']
         beta_coupling = group['beta_coupling']
+        eta = group['eta']
         params = group['params']
-
-        if beta_coupling:
-            # eta = 0.01 assumed, ignores beta input while beta_coupling is on going.
-            betainv = sigma**(4/1.01)
 
         for p in params:
             if p.grad is not None:

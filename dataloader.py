@@ -112,7 +112,7 @@ def get_transforms(dataset_name, model_name):
             transforms.ToTensor(),
             transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
         ])
-    elif dataset_name == 'cifar10N':
+    elif dataset_name in ['cifar10N', 'cifar10']:
         train_transform = transforms.Compose([
             transforms.RandomCrop(32, padding=4),
             transforms.RandomHorizontalFlip(),
@@ -125,7 +125,7 @@ def get_transforms(dataset_name, model_name):
             transforms.Normalize((0.4914, 0.4822, 0.4465),
                                  (0.2023, 0.1994, 0.2010)),
         ])
-    elif dataset_name == 'cifar100N':
+    elif dataset_name in ['cifar100N', 'cifar100']:
         train_transform = transforms.Compose([
             transforms.RandomCrop(32, padding=4),
             transforms.RandomHorizontalFlip(),
@@ -222,4 +222,40 @@ def get_dataset(dataset_name: str,
 
         logger.info(f"[webvision] classes: {num_classes}")
         logger.info(f"[webvision] train samples: {len(train_dataset)}, val samples: {len(test_dataset)}")
+        return train_dataset, test_dataset, num_classes
+    
+    elif dataset_name == 'cifar10':
+        train_dataset = CIFAR10(
+            root=data_root,
+            download=True,
+            train=True,
+            transform=train_transform,
+            noise_type='clean'
+        )
+        test_dataset = CIFAR10(
+            root=data_root,
+            download=True,
+            train=False,
+            transform=test_transform,
+            noise_type='clean'
+        )
+        num_classes = 10
+        return train_dataset, test_dataset, num_classes
+
+    elif dataset_name == 'cifar100':
+        train_dataset = CIFAR100(
+            root=data_root,
+            download=True,
+            train=True,
+            transform=train_transform,
+            noise_type='clean'
+        )
+        test_dataset = CIFAR100(
+            root=data_root,
+            download=True,
+            train=False,
+            transform=test_transform,
+            noise_type='clean'
+        )
+        num_classes = 100
         return train_dataset, test_dataset, num_classes

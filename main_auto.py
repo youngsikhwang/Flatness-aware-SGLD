@@ -106,10 +106,11 @@ def get_optimizer(model, optimizer_name: str, lr: float, **kwargs):
             n_pert=kwargs.get('n_pert', 1),
             momentum=0.0,
             weight_decay=kwargs.get('weight_decay', 5e-4),
-            beta_inv=1e-14,
+            beta_inv=kwargs.get('beta_inv', 1e-14),
             pert_type=kwargs.get('pert_type', 'normal'),
             antithetic=kwargs.get('antithetic', False),
-            beta_coupling=kwargs.get('beta_coupling', False)
+            beta_coupling=kwargs.get('beta_coupling', False),
+            eta=kwargs.get('eta', 0.01)
         )
         scheduler = optim.lr_scheduler.MultiStepLR(
             optimizer, 
@@ -123,7 +124,7 @@ def get_optimizer(model, optimizer_name: str, lr: float, **kwargs):
             lr=lr,
             momentum=kwargs.get('momentum', 0.0),
             weight_decay=kwargs.get('weight_decay', 5e-4),
-            beta_inv=1e-14
+            beta_inv=kwargs.get('beta_inv', 1e-14)
         )
         scheduler = optim.lr_scheduler.MultiStepLR(
             optimizer, 
@@ -253,17 +254,34 @@ def objective(trial: optuna.Trial, args):
 
     elif args.optimizer == 'fsgld':
         lr = trial.suggest_float('lr', 0.01, 1.0, log=True)
-        optimizer_kwargs['sigma'] = trial.suggest_float('sigma', 1e-3, 1e-2, log=True)
+        if args.fixedbeta:
+            beta_inv = args.betavalue
+            trial.set_user_attr('beta_inv', beta_inv) # to store beta_inv to params list
+        else:
+            beta_inv = trial.suggest_float('beta_inv', args.betainvlow, args.betainvhigh, log=True)
+        optimizer_kwargs['beta_inv'] = beta_inv
+        if args.beta_coupling:
+            # sigma will be zero if --rwp is on, so use beta_coupling only when --rwp is off.
+            sigma = beta_inv ** ((1.0 + args.eta) / 4.0)
+        else:
+            sigma = trial.suggest_float('sigma', 0.001, 0.1, log=True)
+
+        optimizer_kwargs['sigma'] = sigma
         optimizer_kwargs['n_pert'] = 1  # Fixed
-        optimizer_kwargs['beta_inv'] = 1e-14  # Fixed
         optimizer_kwargs['pert_type'] = 'normal'  # Fixed
         optimizer_kwargs['momentum'] = 0.0
         optimizer_kwargs['beta_coupling'] = args.beta_coupling
+        optimizer_kwargs['eta'] = args.eta
 
     elif args.optimizer == 'sgld':
         lr = trial.suggest_float('lr', 0.01, 1.0, log=True)
+        if args.fixedbeta:
+            beta_inv = args.betavalue
+            trial.set_user_attr('beta_inv', beta_inv) # to store beta_inv to params list
+        else:
+            beta_inv = trial.suggest_float('beta_inv', args.betainvlow, args.betainvhigh, log=True)
+        optimizer_kwargs['beta_inv'] = beta_inv
         optimizer_kwargs['momentum'] = 0.0
-        optimizer_kwargs['beta_inv'] = 1e-14
 
     elif args.optimizer == 'sam':
         lr = trial.suggest_float('lr', 0.01, 1.0, log=True)
@@ -350,8 +368,7 @@ def run_optuna_optimization(args):
     if args.resume_study:
         study = optuna.load_study(
             study_name=study_name,
-            storage=storage_name,
-            direction='maximize'
+            storage=storage_name
         )
         logger.info(f"Resuming study: {study_name}")
     else:
@@ -363,14 +380,25 @@ def run_optuna_optimization(args):
             load_if_exists=True
         )
         logger.info(f"Created new study: {study_name}")
-    # Optimize
-    study.optimize(
-        lambda trial: objective(trial, args),
-        n_trials=max(args.n_trials-len(study.trials), 0),
-        timeout=args.timeout,
-        n_jobs=args.n_jobs,
-        show_progress_bar=True
-    )
+        
+    # Optimize 
+    completed_trials = [t for t in study.trials if t.state == TrialState.COMPLETE]
+    n_completed = len(completed_trials)
+    logger.info(f"Currently completed trials: {n_completed} / {args.n_trials}")
+
+    remaining_needed = max(args.n_trials - n_completed, 0)
+
+    if remaining_needed > 0:
+        logger.info(f"Trying up to {remaining_needed} more trials in this run.")
+        study.optimize(
+            lambda trial: objective(trial, args),
+            n_trials=remaining_needed,
+            timeout=args.timeout,
+            n_jobs=args.n_jobs,
+            show_progress_bar=True
+        )
+    else:
+        logger.info("Target number of COMPLETE trials already reached. Skipping optimization.")
     
     # Print statistics
     logger.info("\n" + "="*50)
@@ -446,17 +474,34 @@ def train_with_params(args, best_params, seed):
         optimizer_kwargs['momentum'] = best_params.get('momentum', 0.9)
     
     elif args.optimizer == 'fsgld':
-        optimizer_kwargs['sigma'] = best_params.get('sigma', 0.001)
+        if args.fixedbeta:
+            beta_inv = args.betavalue
+            # To contain beta_inv value inside the log, since it was out of optuna search.
+            logger.info(f"beta_inv={beta_inv}")
+        else:
+            beta_inv = best_params.get('beta_inv', 1e-14)
+        optimizer_kwargs['beta_inv'] = beta_inv
+        if args.beta_coupling:
+            sigma = beta_inv ** ((1.0 + args.eta) / 4.0)
+        else:
+            sigma = best_params.get('sigma', 0.001)
+        optimizer_kwargs['sigma'] = sigma
         optimizer_kwargs['n_pert'] = 1 
-        optimizer_kwargs['beta_inv'] = best_params.get('beta_inv', 1e-14)
         optimizer_kwargs['pert_type'] = args.pert_type if hasattr(args, 'pert_type') else 'normal'
         optimizer_kwargs['antithetic'] = args.antithetic if hasattr(args, 'antithetic') else False
         optimizer_kwargs['momentum'] = best_params.get('fsgld_momentum', 0.0)
         optimizer_kwargs['beta_coupling'] = args.beta_coupling if hasattr(args, 'beta_coupling') else False
+        optimizer_kwargs['eta'] = args.eta
     
     elif args.optimizer == 'sgld':
+        if args.fixedbeta:
+            beta_inv = args.betavalue
+            # To contain beta_inv value inside the log, since it was out of optuna search.
+            logger.info(f"beta_inv={beta_inv}")
+        else:
+            beta_inv = best_params.get('beta_inv', 1e-14)
+        optimizer_kwargs['beta_inv'] = beta_inv
         optimizer_kwargs['momentum'] = best_params.get('momentum', 0.0)
-        optimizer_kwargs['beta_inv'] = 1e-14
 
     elif args.optimizer == 'sam':
         optimizer_kwargs['rho'] = best_params.get('rho', 0.05)
@@ -544,6 +589,9 @@ def train_with_params(args, best_params, seed):
     logger.info(f'Final test accuracy: {final_test_acc:.2f}%')
     logger.info(f'Average last {last_n} epochs: {avg_last_test_acc:.2f}%')
     
+    final_model_path = os.path.join(args.save_dir, f'final_model_{args.optimizer}.pth')
+    torch.save(model.state_dict(), final_model_path)
+        
     return {
         'seed': seed,
         'best_test_acc': best_test_acc,
@@ -664,16 +712,33 @@ def train_with_best_params(args, best_params):
         optimizer_kwargs['momentum'] = best_params.get('momentum', 0.9)
     
     elif args.optimizer == 'fsgld':
-        optimizer_kwargs['sigma'] = best_params.get('sigma', 0.1)
+        if args.fixedbeta:
+            beta_inv = args.betavalue
+            # To contain beta_inv value inside the log, since it was out of optuna search.
+            logger.info(f"beta_inv={beta_inv}")
+        else:
+            beta_inv = best_params.get('beta_inv', 1e-14)
+        optimizer_kwargs['beta_inv'] = beta_inv
+        if args.beta_coupling:
+            sigma = beta_inv ** ((1.0 + args.eta) / 4.0)
+        else:
+            sigma = best_params.get('sigma', 0.001)
+        optimizer_kwargs['sigma'] = sigma
         optimizer_kwargs['n_pert'] = 1  
-        optimizer_kwargs['beta_inv'] = best_params.get('beta_inv', 1e-14)
         optimizer_kwargs['pert_type'] = 'normal'  # Fixed
         optimizer_kwargs['momentum'] = best_params.get('fsgld_momentum', 0.0)
         optimizer_kwargs['beta_coupling'] = args.beta_coupling
+        optimizer_kwargs['eta'] = args.eta
     
     elif args.optimizer == 'sgld':
+        if args.fixedbeta:
+            beta_inv = args.betavalue
+            # To contain beta_inv value inside the log, since it was out of optuna search.
+            logger.info(f"beta_inv={beta_inv}")
+        else:
+            beta_inv = best_params.get('beta_inv', 1e-14)
+        optimizer_kwargs['beta_inv'] = beta_inv
         optimizer_kwargs['momentum'] = 0.0
-        optimizer_kwargs['beta_inv'] = 1e-14
 
     elif args.optimizer == 'sam':
         optimizer_kwargs['rho'] = best_params.get('rho', 0.05)
@@ -797,6 +862,12 @@ def main():
                        choices=['sgd', 'fsgld', 'sam','sgld', 'adamw'], 
                        help='Optimizer to tune')
     parser.add_argument('--beta_coupling', action='store_true', help='Use coupled beta')
+    parser.add_argument('--eta', type=float, default=0.1, help='for beta-sigma coupling, should use with beta_coupling on.')
+    parser.add_argument('--betainvlow', type=float, default=1e-9, help='lower bound for sgld beta search range.')
+    parser.add_argument('--betainvhigh', type=float, default=1e-7, help='upper bound for sgld beta search range.')
+    parser.add_argument("--fixedbeta", action="store_true", help="Use a fixed beta_inv instead of Optuna-suggested beta_inv")
+    parser.add_argument("--betavalue", type=float, default=1e-14, help="Fixed beta_inv value used when --fixedbeta is on")
+
     
     # Optuna settings
     parser.add_argument('--n_trials', type=int, default=20, 
