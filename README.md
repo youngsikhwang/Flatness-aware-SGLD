@@ -1,6 +1,6 @@
 # Flatness-Aware Stochastic Gradient Langevin Dynamics
 
-This is the code implementation for "Flatness-Aware Stochastic Gradient Langevin Dynamics". 
+This is the code implementation for 2026 ICML "Flatness-Aware Stochastic Gradient Langevin Dynamics". 
 
 
 ## Table 1,2
