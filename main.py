@@ -268,15 +268,9 @@ def main():
     
     # Set seed
     set_seed(args.seed)
-    
-    # Create save directory with experiment name
+ 
     exp_name = f"{args.dataset}_{args.backbone}_{args.optimizer}"
-    if args.optimizer == 'fsgld':
-        exp_name += f"_sigma{args.sigma}_seed{args.seed}"
-    elif args.optimizer == 'sam':
-        exp_name += f"_rho{args.rho}"
-        if args.adaptive:
-            exp_name += "_adaptive"
+
     exp_name += f"_lr{args.lr}_bs{args.batch_size}_seed{args.seed}"
     
     save_dir = os.path.join(args.save_dir, exp_name)
