@@ -167,7 +167,7 @@ def train_epoch(model, train_loader, optimizer, criterion, device, epoch, args):
             loss.backward()
             return loss, output
         
-        if args.optimizer in ['fsgld', 'sgld', 'sam']:
+        if args.optimizer in ['fsgld', 'sgld','asam', 'sam']:
             loss, output = optimizer.step(closure)
         else:
             optimizer.zero_grad()
