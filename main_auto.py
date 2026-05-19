@@ -288,7 +288,12 @@ def objective(trial: optuna.Trial, args):
         optimizer_kwargs['rho'] = trial.suggest_float('rho', 1e-3, 1e-1, log=True)
         optimizer_kwargs['momentum'] = trial.suggest_float('momentum', 0.0, 0.9)
         optimizer_kwargs['adaptive'] = False  
-    
+    elif args.optimizer == 'asam':
+        lr = trial.suggest_float('lr', 0.01, 1.0, log=True)
+        optimizer_kwargs['rho'] = trial.suggest_float('rho', 1e-3, 1e-1, log=True)
+        optimizer_kwargs['momentum'] = trial.suggest_float('momentum', 0.0, 0.9)
+        optimizer_kwargs['adaptive'] = True       
+
     else:
         raise ValueError(f"Unsupported optimizer: {args.optimizer}")
     
