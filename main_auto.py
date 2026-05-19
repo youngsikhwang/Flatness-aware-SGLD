@@ -744,7 +744,12 @@ def train_with_best_params(args, best_params):
         optimizer_kwargs['rho'] = best_params.get('rho', 0.05)
         optimizer_kwargs['momentum'] = best_params.get('momentum', 0.9)
         optimizer_kwargs['adaptive'] = False  # Fixed
-    
+
+    elif args.optimizer == 'asam':
+        optimizer_kwargs['rho'] = best_params.get('rho', 0.05)
+        optimizer_kwargs['momentum'] = best_params.get('momentum', 0.9)
+        optimizer_kwargs['adaptive'] = True  # Fixed
+        
     # Set seed
     set_seed(args.seed)
     
@@ -859,7 +864,7 @@ def main():
     
     # Optimizer selection (IMPORTANT: this selects which optimizer to tune)
     parser.add_argument('--optimizer', type=str, default='sgd',
-                       choices=['sgd', 'fsgld', 'sam','sgld', 'adamw'], 
+                       choices=['sgd', 'fsgld', 'sam', 'asam','sgld', 'adamw'], 
                        help='Optimizer to tune')
     parser.add_argument('--beta_coupling', action='store_true', help='Use coupled beta')
     parser.add_argument('--eta', type=float, default=0.1, help='for beta-sigma coupling, should use with beta_coupling on.')
