@@ -122,6 +122,20 @@ def get_optimizer(model, optimizer_name: str, lr: float, **kwargs):
             adaptive=kwargs.get('adaptive', False)
         )
         scheduler = optim.lr_scheduler.MultiStepLR(base_opt, milestones=kwargs.get('milestones',[50, 100]), gamma=0.1)
+    elif optimizer_name == 'asam':
+        base_opt = optim.SGD(
+            model.parameters(),
+            lr=lr,
+            momentum=kwargs.get('momentum', 0.9),
+            weight_decay=kwargs.get('weight_decay', 5e-4)
+        )
+        optimizer = SAM(
+            model.parameters(),
+            base_optimizer=base_opt,
+            rho=kwargs.get('rho', 0.05),
+            adaptive=kwargs.get('adaptive', True)
+        )
+        scheduler = optim.lr_scheduler.MultiStepLR(base_opt, milestones=kwargs.get('milestones',[50, 100]), gamma=0.1)        
     else:
         raise ValueError(f"Unsupported optimizer: {optimizer_name}")
     
