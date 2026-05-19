@@ -217,7 +217,7 @@ def main():
 
     # Training settings
     parser.add_argument('--optimizer', type=str, default='sgd',
-                       choices=['sgd', 'adamw', 'fsgld', 'sam', 'sgld'], help='Optimizer')
+                       choices=['sgd', 'adamw', 'fsgld', 'sam', 'asam', 'sgld'], help='Optimizer')
     parser.add_argument('--epochs', type=int, default=150, help='Number of epochs')
     parser.add_argument('--batch_size', type=int, default=128, help='Batch size')
     parser.add_argument('--lr', type=float, default=0.1, help='Learning rate')
