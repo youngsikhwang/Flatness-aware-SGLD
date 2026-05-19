@@ -180,7 +180,7 @@ def train_epoch(model, train_loader, optimizer, criterion, device, epoch, optimi
             loss.backward()
             return loss, output
         
-        if optimizer_name in ['fsgld','sgld','sam']:
+        if optimizer_name in ['fsgld','sgld','asam','sam']:
             loss, output = optimizer.step(closure)
         else:
             optimizer.zero_grad()
