@@ -250,7 +250,7 @@ def main():
     parser.add_argument('--beta_coupling', action='store_true', help='Use coupled sigma, ignore sigma input.')
     parser.add_argument('--eta', type=float, default=0.01, help='for beta-sigma coupling, should use with beta_coupling on.')
     
-    # SAM specific
+    # SAM, ASAM specific
     parser.add_argument('--rho', type=float, default=0.05, help='SAM perturbation radius')
     parser.add_argument('--adaptive', action='store_true', help='Use adaptive SAM')
     
