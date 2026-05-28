@@ -7,7 +7,6 @@ This is the code implementation for 2026 ICML "Flatness-Aware Stochastic Gradien
 Please refer `code/EMCMC/READEME.md`.
 
 ## Table 3,4
-Please ensure 
 
 ### Setup
 First, install the required dependencies:
@@ -100,3 +99,22 @@ python main_auto.py \
   --n_trials 20 --epochs 75 \
   --save_dir ./optuna_results/cifar10N_vit_b_16_fsgld 
 ```
+
+
+
+
+
+
+###Citation
+
+If you find this repository useful in your research, please consider citing our paper:
+
+```bibtex
+@inproceedings{bruno2026flatness,
+  title     = {Flatness-Aware Stochastic Gradient Langevin Dynamics},
+  author    = {Bruno, Stefano and Hwang, Youngsik and An, Jaehyeon and Sabanis, Sotirios and Lim, Dong-Young},
+  booktitle = {Proceedings of the 43rd International Conference on Machine Learning},
+  year      = {2026}
+}
+```
+
