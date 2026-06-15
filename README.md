@@ -3,7 +3,7 @@ Flatness-Aware Stochastic Gradient Langevin Dynamics (fSGLD)
 </h1>
 
 <p align="center">
-Accepted to the International Conference on Machine Learning (ICML 2026)
+Accepted to ICML 2026
 </p>
 
 <p align="center">
