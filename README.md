@@ -31,7 +31,7 @@ The following instructions reproduce the experiments reported in the paper.
 
 
 ## Table 1 and Table 2
-Please refer `code/EMCMC/READEME.md`.
+Please refer `code/EMCMC/README.md`.
 
 ## Table 3 and Table 4
 
