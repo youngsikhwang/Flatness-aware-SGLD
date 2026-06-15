@@ -5,7 +5,7 @@
 </p>
 
 
-This is the code implementation for 2026 ICML "Flatness-Aware Stochastic Gradient Langevin Dynamics". 
+This is the code implementation for the paper "Flatness-Aware Stochastic Gradient Langevin Dynamics" accepted at the International Conference on Machine Learning (ICML 2026). 
 
 
 ## Table 1,2
