@@ -9,8 +9,8 @@ Accepted to ICML 2026
 <p align="center">
 <a href="https://icml.cc/virtual/2026/poster/64682">Paper</a> |
 <a href="https://arxiv.org/pdf/2510.02174">arXiv</a> |
-<a href="https://openreview.net/forum?id=Kw0nhxeTeI">OpenReview</a> | 
-<!--  <a href="slides">Slides</a> -->
+<a href="https://openreview.net/forum?id=Kw0nhxeTeI">OpenReview</a>  
+<!-- |   <a href="slides">Slides</a> -->
 </p>
 
 <p align="center">
