@@ -1,17 +1,39 @@
-# Flatness-Aware Stochastic Gradient Langevin Dynamics
+<h1 align="center">
+Flatness-Aware Stochastic Gradient Langevin Dynamics (fSGLD)
+</h1>
+
+<p align="center">
+Accepted at the International Conference on Machine Learning (ICML 2026)
+</p>
+
+<p align="center">
+<a href="https://icml.cc/virtual/2026/poster/64682">Paper</a> |
+<a href="https://arxiv.org/pdf/2510.02174">arXiv</a> |
+<a href="https://openreview.net/forum?id=Kw0nhxeTeI">OpenReview</a> | 
+<!--  <a href="slides">Slides</a> -->
+</p>
+
+<p align="center">
+A first-order optimizer that provably seeks global flat minima
+while retaining SGD/SGLD-level computational cost.
+</p>
 
 <p align="center">
   <img src="overview.png" width="900">
 </p>
 
 
-This is the code implementation for the paper "Flatness-Aware Stochastic Gradient Langevin Dynamics" accepted at the International Conference on Machine Learning (ICML 2026). 
+<!-- This is the code implementation for the paper "Flatness-Aware Stochastic Gradient Langevin Dynamics" accepted at the International Conference on Machine Learning (ICML 2026).   -->
+
+## Reproducibility
+
+The following instructions reproduce the experiments reported in the paper.
 
 
-## Table 1,2
+## Table 1 and Table 2
 Please refer `code/EMCMC/READEME.md`.
 
-## Table 3,4
+## Table 3 and Table 4
 
 ### Setup
 First, install the required dependencies:
