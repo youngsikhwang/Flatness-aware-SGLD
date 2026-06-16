@@ -98,8 +98,8 @@ You may further control the learning strategy using the following options:
   Fix the inverse temperature β⁻¹ during Optuna hyperparameter search.
 
 - `--betavalue`  
-  Specify the value of β⁻¹ when `--fixedbeta` is enabled.
-
+  Specify the value of β⁻¹ when `--fixedbeta` is enabled. 
+  <!--  Specify the value of $\beta^{-1}$ when `--fixedbeta` is enabled.  -->
 
 
 ### Examples
