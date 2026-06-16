@@ -30,10 +30,11 @@ while retaining SGD/SGLD-level computational cost.
 The following instructions reproduce the experiments reported in the paper.
 
 
-## Table 1 and Table 2
-Please refer `code/EMCMC/README.md`.
+## Tables 1 and 2
 
-## Table 3 and Table 4
+For reproducing the experiments reported in Tables 1 and 2, please refer to [EMCMC/README.md](EMCMC/README.md).
+
+## Tables 3 and 4
 
 ### Setup
 First, install the required dependencies:
