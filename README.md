@@ -14,8 +14,10 @@ Accepted to ICML 2026
 </p>
 
 <p align="center">
-A first-order optimizer that provably seeks global flat minima
+A first-order optimizer that provably seeks flat minima
 while retaining SGD/SGLD-level computational cost.
+<!-- A first-order optimizer that provably seeks global flat minima
+while retaining SGD/SGLD-level computational cost. -->
 </p>
 
 <p align="center">
@@ -27,12 +29,12 @@ while retaining SGD/SGLD-level computational cost.
 
 ## Reproducibility
 
-The following instructions reproduce the experiments reported in the paper.
+This repository contains the code used to reproduce the experiments reported in the paper.
 
 
 ## Tables 1 and 2
 
-For reproducing the experiments reported in Tables 1 and 2, please refer to [EMCMC/README.md](EMCMC/README.md).
+See [EMCMC/README.md](EMCMC/README.md) for instructions and experimental details.
 
 ## Tables 3 and 4
 
