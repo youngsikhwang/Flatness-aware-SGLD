@@ -140,11 +140,13 @@ python main_auto.py \
 If you find this repository useful in your research, please consider citing our paper:
 
 ```bibtex
-@inproceedings{bruno2026flatness,
-  title     = {Flatness-Aware Stochastic Gradient Langevin Dynamics},
-  author    = {Bruno, Stefano and Hwang, Youngsik and An, Jaehyeon and Sabanis, Sotirios and Lim, Dong-Young},
-  booktitle = {Proceedings of the 43rd International Conference on Machine Learning},
-  year      = {2026}
+@inproceedings{
+bruno2026flatnessaware,
+title={Flatness-Aware Stochastic Gradient Langevin Dynamics},
+author={Stefano Bruno and Youngsik Hwang and JaeHyeon An and Sotirios Sabanis and Dongyoung Lim},
+booktitle={Forty-third International Conference on Machine Learning},
+year={2026},
+url={https://openreview.net/forum?id=Kw0nhxeTeI}
 }
 ```
 
