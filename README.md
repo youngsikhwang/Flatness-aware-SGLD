@@ -142,7 +142,7 @@ If you find this repository useful in your research, please consider citing our 
 ```bibtex
 @inproceedings{
 bruno2026flatnessaware,
-title={Flatness-Aware Stochastic Gradient Langevin Dynamics},
+title={Flatness-Aware Stochastic Gradient {L}angevin Dynamics},
 author={Stefano Bruno and Youngsik Hwang and JaeHyeon An and Sotirios Sabanis and Dongyoung Lim},
 booktitle={Forty-third International Conference on Machine Learning},
 year={2026},
